@@ -1,5 +1,6 @@
-import pkg_resources
+
 import re
+from importlib.metadata import version
 
 ###################################
 # Versioning Class
@@ -18,7 +19,8 @@ import re
 # 2021-09-07: First implementation of the class (1.0.0)
 
 
-__version__ = pkg_resources.get_distribution("version_tools").version
+#__version__ = pkg_resources.get_distribution("version_tools").version
+__version__ = version('version_tools')
 
 code = {"d": "devel", "a": "alpha", "b": "beta", "rc": "ReleaseCandidate", "f": "Final"}
 

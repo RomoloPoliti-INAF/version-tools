@@ -1,6 +1,7 @@
 import pytest
 from version_tools.version import Vers
 
+
 def test_version_initialization():
     v1 = Vers((1, 0, 0))
     assert v1.major == 1

@@ -11,8 +11,10 @@ dependencies = [
     "setuptools (>=75.8.0,<76.0.0)"
 ]
 
+
 [tool.poetry]
 packages = [{include = "version_tools", from = "src"}]
+include = ["CHANGELOG.md"]
 
 
 [tool.poetry.group.dev.dependencies]

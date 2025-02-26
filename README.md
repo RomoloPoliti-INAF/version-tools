@@ -3,10 +3,20 @@
 
 ## Installation
 
-To install the Version-Tools package can follow two differenways, run the following commands:
+### From Repository
+
+To install the Version-Tools package from the repository, run the following commands:
 
 ```sh
-git clone https://github.com/your-username/version-tools.git
+git clone https://github.com/RomoloPoliti-INAF/version-tools.git
 cd version-tools
-pip install -r requirements.txt
+poetry install
+```
+
+### From PyPi
+
+To install the Version-Tools package from PyPi, run the following command:
+
+```sh
+pip install version-tools
 ```
