@@ -1,5 +1,5 @@
 import pytest
-from version_tools.version import Vers
+from semantic_version_tools.version import Vers
 
 
 def test_version_initialization():
@@ -58,6 +58,13 @@ def test_version_exceptions():
 
     with pytest.raises(ValueError):
         Vers((1, 0, 0, "invalid"))
+        
+def test_version_sum():
+    v1 = Vers((1, 0, 0))
+    v2 = Vers((1, 0, 1))
+
+    assert v1 + v2 == Vers((2, 0, 1))
+    
 
 if __name__ == "__main__":
     pytest.main()

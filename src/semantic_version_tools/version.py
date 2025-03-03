@@ -20,7 +20,7 @@ from importlib.metadata import version
 
 
 #__version__ = pkg_resources.get_distribution("version_tools").version
-__version__ = version('version_tools')
+__version__ = version('semantic_version_tools')
 
 code = {"d": "devel", "a": "alpha", "b": "beta", "rc": "ReleaseCandidate", "f": "Final"}
 
@@ -52,7 +52,9 @@ class Vers:
                 r"(\d+)\.(\d+)(?:\.(\d+))?(?:[-\.]([a-zA-Z]*)(?:\.?(\d+))?)?", ver
             )
             prt = list(a.groups())
-            prt[0:3] = [int(i) for i in prt[0:3]]
+            prt[0:2] = [int(i) for i in prt[0:2]]
+            if prt[2] is not None:
+                prt[2] = int(prt[2])
             if prt[3] is not None:
                 if prt[3].lower() in "development":
                     prt[3] = "d"
@@ -65,12 +67,14 @@ class Vers:
                 elif prt[3].lower() in "final":
                     prt[3] = "f"
             else:
-                prt[3] = "f"
+                prt[3] = None
             if prt[3] is not None and prt[4] is None:
-                prt[4] = 1
-            prt[4] = int(prt[4])
-            ver = tuple(prt)
-
+                prt[4] = None
+            else:
+                if prt[3] is not None:
+                    prt[4] = int(prt[4])
+            ver = tuple([x for x in prt if x is not None])
+        print(ver)
         self._len = 3
         if len(ver) < 3:
             self.major, self.minor, *extra = ver
@@ -180,5 +184,10 @@ class Vers:
         else:
             return False
 
-
+    def __add__(self, other:"Vers") -> "Vers":
+        self.major += other.major
+        self.minor += other.minor
+        if self._len == 3:
+            self.patch += other.patch
+        return self
 # version = Vers(VERSION)
