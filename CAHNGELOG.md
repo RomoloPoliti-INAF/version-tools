@@ -1,5 +1,10 @@
 # Version-Tools Changelog
 
+## Version 1.3.1 (2025-03-03)
+
+- add the \_\_add__ method
+- improve documentation
+
 ## Version 1.3.0 (2025-02-25)
 
 - Moved to standalone module

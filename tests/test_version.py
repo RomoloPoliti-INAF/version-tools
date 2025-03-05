@@ -7,8 +7,8 @@ def test_version_initialization():
     assert v1.major == 1
     assert v1.minor == 0
     assert v1.patch == 0
-    assert v1.type is None
-    assert v1.build is None
+    assert v1.type =='f'
+    assert v1.build == 1
 
     v2 = Vers("1.0.0")
     assert v2.major == 1
@@ -62,9 +62,15 @@ def test_version_exceptions():
 def test_version_sum():
     v1 = Vers((1, 0, 0))
     v2 = Vers((1, 0, 1))
-
     assert v1 + v2 == Vers((2, 0, 1))
     
-
+def test_version_sum_integer():
+    v1 = Vers((1, 0, 0))
+    assert v1 + 1 == Vers((1, 1, 0))
+    
+def test_version_sum_float():
+    v1 = Vers((1, 0, 0))
+    assert v1 + 1.2 == Vers((2, 2, 0))
+    
 if __name__ == "__main__":
     pytest.main()

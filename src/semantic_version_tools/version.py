@@ -2,6 +2,7 @@
 import re
 from importlib.metadata import version
 
+
 ###################################
 # Versioning Class
 ###################################
@@ -11,15 +12,8 @@ from importlib.metadata import version
 #
 # The versioning is based on the Semantic Versioning 2.0.0
 #
-# History:
-#
-# 2025-02-25: Moved to standalone module (1.3.0)
-# 2024-11-18: accept string as imput (1.2.0)
-# 2024-10-04: The patch is now not mandatory (1.1.0)
-# 2021-09-07: First implementation of the class (1.0.0)
 
 
-#__version__ = pkg_resources.get_distribution("version_tools").version
 __version__ = version('semantic_version_tools')
 
 code = {"d": "devel", "a": "alpha", "b": "beta", "rc": "ReleaseCandidate", "f": "Final"}
@@ -47,6 +41,7 @@ class Vers:
     """
 
     def __init__(self, ver: tuple | str) -> None:
+
         if isinstance(ver, str):
             a = re.match(
                 r"(\d+)\.(\d+)(?:\.(\d+))?(?:[-\.]([a-zA-Z]*)(?:\.?(\d+))?)?", ver
@@ -74,7 +69,7 @@ class Vers:
                 if prt[3] is not None:
                     prt[4] = int(prt[4])
             ver = tuple([x for x in prt if x is not None])
-        print(ver)
+        # print(ver)
         self._len = 3
         if len(ver) < 3:
             self.major, self.minor, *extra = ver
@@ -83,7 +78,7 @@ class Vers:
         else:
             self.major, self.minor, self.patch, *extra = ver
         # self.patch = extra[0] if extra else None
-        self.type = extra[0] if len(extra) != 0 else None
+        self.type = extra[0] if len(extra) != 0 else 'f'
         if self.type is not None:
             if not isinstance(self.type, str):
                 raise Exception(
@@ -94,7 +89,7 @@ class Vers:
                     f"the fourth element of the version mus be one of {
                                 ','.join(code.keys())}"
                 )
-        self.build = extra[1] if len(extra) > 1 else None
+        self.build = extra[1] if len(extra) > 1 else 1
 
     def full(self) -> str:
         """
@@ -185,9 +180,19 @@ class Vers:
             return False
 
     def __add__(self, other:"Vers") -> "Vers":
-        self.major += other.major
-        self.minor += other.minor
-        if self._len == 3:
-            self.patch += other.patch
+        
+        if isinstance(other,int):
+            self.minor += other
+            
+        if isinstance(other,float):
+            a=str(other).split(".")
+            self.major += int(a[0])
+            self.minor += int(a[1])
+            
+        if isinstance(other, Vers):
+            self.major += other.major
+            self.minor += other.minor
+            if self._len == 3:
+                self.patch += other.patch
         return self
 # version = Vers(VERSION)
