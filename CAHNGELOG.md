@@ -1,5 +1,9 @@
 # Version-Tools Changelog
 
+## Version 1.3.2 (2025-09-25)
+
+- update of dependencies
+
 ## Version 1.3.1 (2025-03-03)
 
 - add the \_\_add__ method
