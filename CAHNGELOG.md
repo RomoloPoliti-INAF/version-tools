@@ -1,5 +1,9 @@
 # Version-Tools Changelog
 
+## Version 1.4.0 (2025-10-22)
+
+- test for python 3.14
+
 ## Version 1.3.2 (2025-09-25)
 
 - update of dependencies
