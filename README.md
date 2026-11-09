@@ -1,122 +1,64 @@
-
 # Version-Tools
+
+`semantic-version-tools` provides `Vers`, a Python class for parsing,
+comparing and incrementing version numbers. It supports Python 3.10–3.15.
 
 ## Installation
 
-### From Repository
+Install from PyPI with pip or add the package to a uv project.
 
-To install the Version-Tools package from the repository, run the following commands:
+```sh
+pip install semantic-version-tools
+uv add semantic-version-tools
+```
+
+## Usage
+
+```pycon
+>>> from semantic_version_tools import Vers
+>>> Vers("1.2")
+Version 1.2
+>>> Vers((1, 2, 0, "d", 1))
+Version 1.2.0-devel.1
+>>> Vers("1.2-dev.1+sha.abc").full()
+'1.2.0-devel.1+sha.abc'
+>>> Vers("1.2.0-rc.1") < Vers("1.2.0")
+True
+```
+
+Tuples contain two to five fields in this order: major, minor, patch,
+prerelease code and build number. The prerelease codes are `d` (development),
+`a` (alpha), `b` (beta), `rc` (release candidate) and `f` (final).
+A prerelease string with an omitted patch uses patch zero. Metadata after
+`+` is preserved in the full version and ignored in comparisons.
+`short()` returns the numeric version without the prerelease or metadata.
+
+Addition returns a new `Vers` instance. Integers increment the minor
+component. Floats use the integer and fractional digits as major and minor
+increments. Adding another `Vers` combines the numeric components and
+preserves the left operand's precision and release information.
+
+```pycon
+>>> current = Vers("1.2.3")
+>>> current + 1
+Version 1.3.3
+>>> current + 1.2
+Version 2.4.3
+>>> current
+Version 1.2.3
+>>> current += Vers("1.0.1")
+>>> current
+Version 2.2.4
+```
+
+## Development
 
 ```sh
 git clone https://github.com/RomoloPoliti-INAF/version-tools.git
 cd version-tools
-poetry install
-```
-
-### From PyPi
-
-To install the Version-Tools package from PyPi, run the following command:
-
-```sh
-pip install semantic-version-tools
-```
-### Using poetry
-
-To add the package to your poetry project, you can run the command:
-
-```sh
-poetry add semantic-versioning-tools
-```
-
-
-## Usage
-
-To use the library it's necessary import the class *Vers*, than you can comapare or manipulate the version numbers.
-
-### Initialize and print version
-
-```python
->>> from semantic_version_tools import Vers
-
->>> main_ver=Vers('1.0')
->>> print(main_ver)
-
-Version 1.0
-```
-
-The version number could be a string or a tuple, whit 2 or 5 elements:
-- the major version number
-- the minor version number
-- the patch number
-- pre-release type
-- build number
-
-For the pre-release are used letters as reported below:
-
-- **d**: developing version
-- **a**: alpha release
-- **b**: beta release
-- **rc**: release candidate
-- **f**: final release
-
-```python
->>> main_version = Vers((0,1,0,'d',1))
->>> print(main_version)
-
-Version 0.1.0-devel.1
-
->>> main_version = Vers('0.1.0-a.1')
->>> print(main_version)
-
-Version 0.1.0-alpha.1
-```
-
-### Compare versions
-
-In the class Vers are implemented the main comparison operators.
-For example:
-
-```python
->>> a=Vers('1.0.0')
->>> b=Vers('1.0.1')
-
->>> a>b
-False
->>> a==b
-False
->>> a<b
-True
-a<=b
-True
-```
-
-### Sum and increase
-
-It's possible sum tro version number or icrease it.
-
-```python
->>> a = Vers('1.0.0')
->>> b = Vers('1.0.1')
->>> c=a+b
->>> c
-Version 2.0.1
-
-
->>> a = Vers('1.0.0')
->>> a=a+1
->>> a
-Version 1.1.0
-# equivalent to
->>> a +=1
->>> a
-Version 1.1.0
-```
-
-The summ add a minor version. To add a major version you must add a float
-
-```python
->>> a = Vers('1.0.0')
->>> a += 1.0
->>> a
-Version 2.0.0
+uv sync --locked
+uv run --locked ruff check
+uv run --locked ruff format --check
+uv run --locked pytest --cov=semantic_version_tools --cov-branch --cov-report=term-missing --cov-fail-under=80
+uv build
 ```

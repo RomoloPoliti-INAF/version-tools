@@ -1,5 +1,13 @@
 # Version-Tools Changelog
 
+## Version 1.5.0 (2026-11-09)
+
+- Support and test Python 3.10 through 3.15.
+- Use uv for dependency management and builds, with Ruff for linting and formatting.
+- Validate complete version strings, preserve build metadata and accept prereleases with an omitted patch.
+- Return a new version from addition. Augmented assignment rebinds the left-hand variable.
+- Add regression tests and an 80% coverage threshold to the documented test command.
+
 ## Version 1.4.0 (2025-10-22)
 
 - test for python 3.14

@@ -1,7 +1,7 @@
-
 import re
+from copy import copy
+from functools import total_ordering
 from importlib.metadata import version
-
 
 ###################################
 # Versioning Class
@@ -14,13 +14,14 @@ from importlib.metadata import version
 #
 
 
-__version__ = version('semantic_version_tools')
+__version__ = version("semantic_version_tools")
 
 code = {"d": "devel", "a": "alpha", "b": "beta", "rc": "ReleaseCandidate", "f": "Final"}
 
 numeric_map = {"d": 1, "a": 2, "b": 3, "rc": 4, "f": 5}
 
 
+@total_ordering
 class Vers:
     """
     Class for the manipulation of objects version following the Semantic Versioning
@@ -42,54 +43,49 @@ class Vers:
 
     def __init__(self, ver: tuple | str) -> None:
 
+        self.metadata = None
         if isinstance(ver, str):
-            a = re.match(
-                r"(\d+)\.(\d+)(?:\.(\d+))?(?:[-\.]([a-zA-Z]*)(?:\.?(\d+))?)?", ver
+            match = re.fullmatch(
+                r"(\d+)\.(\d+)(?:\.(\d+))?"
+                r"(?:[-.]([a-zA-Z]+)(?:\.?(\d+))?)?"
+                r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?",
+                ver,
             )
-            prt = list(a.groups())
-            prt[0:2] = [int(i) for i in prt[0:2]]
-            if prt[2] is not None:
-                prt[2] = int(prt[2])
-            if prt[3] is not None:
-                if prt[3].lower() in "development":
-                    prt[3] = "d"
-                elif prt[3].lower() in "alpha":
-                    prt[3] = "a"
-                elif prt[3].lower() in "beta":
-                    prt[3] = "b"
-                elif prt[3].lower() in "releasecandidate":
-                    prt[3] = "rc"
-                elif prt[3].lower() in "final":
-                    prt[3] = "f"
-            else:
-                prt[3] = None
-            if prt[3] is not None and prt[4] is None:
-                prt[4] = None
-            else:
-                if prt[3] is not None:
-                    prt[4] = int(prt[4])
-            ver = tuple([x for x in prt if x is not None])
-        # print(ver)
-        self._len = 3
-        if len(ver) < 3:
-            self.major, self.minor, *extra = ver
-            self.patch = 0
-            self._len = 2
-        else:
-            self.major, self.minor, self.patch, *extra = ver
-        # self.patch = extra[0] if extra else None
-        self.type = extra[0] if len(extra) != 0 else 'f'
+            if match is None:
+                raise ValueError(f"Invalid version: {ver!r}")
+
+            major, minor, patch, release, build, self.metadata = match.groups()
+            ver = (int(major), int(minor))
+            if patch is not None or release is not None:
+                ver += (int(patch or 0),)
+            if release is not None:
+                aliases = {
+                    "dev": "d",
+                    "development": "d",
+                    **{name.lower(): key for key, name in code.items()},
+                }
+                release = release.lower()
+                ver += (aliases.get(release, release), int(build or 1))
+
+        if not isinstance(ver, tuple):
+            raise TypeError("Version must be a string or tuple")
+        if not 2 <= len(ver) <= 5:
+            raise ValueError("Version tuple must contain two to five elements")
+
+        self.major, self.minor = ver[:2]
+        self._len = min(len(ver), 3)
+        self.patch = ver[2] if len(ver) >= 3 else 0
+        self.type = ver[3] if len(ver) >= 4 else "f"
+        self.build = ver[4] if len(ver) == 5 else 1
         if self.type is not None:
             if not isinstance(self.type, str):
-                raise Exception(
-                    f"The fourth element of the version number must be a string"
+                raise TypeError(
+                    "The fourth element of the version number must be a string"
                 )
-            if not self.type in code.keys():
+            if self.type not in code:
                 raise ValueError(
-                    f"the fourth element of the version mus be one of {
-                                ','.join(code.keys())}"
+                    f"The fourth element of the version must be one of {','.join(code)}"
                 )
-        self.build = extra[1] if len(extra) > 1 else 1
 
     def full(self) -> str:
         """
@@ -99,13 +95,15 @@ class Vers:
             str: the version string
         """
         if self.type is None or self.type.lower() == "f":
-            nVer = f"{self.major}.{self.minor}{
-                f'.{self.patch}' if self._len == 3 else ''}"
+            nVer = self.short()
         # elif:
         #     nVer = f"{self.major}.{self.minor}.{self.patch}"
         else:
-            nVer = f"{self.major}.{self.minor}.{
-                self.patch}-{code[self.type]}.{self.build}"
+            nVer = (
+                f"{self.major}.{self.minor}.{self.patch}-{code[self.type]}.{self.build}"
+            )
+        if self.metadata is not None:
+            return f"{nVer}+{self.metadata}"
         return nVer
 
     def short(self) -> str:
@@ -115,7 +113,7 @@ class Vers:
         Returns:
             str: the version string
         """
-        return f"{self.major}.{self.minor}{f'.{self.patch}' if self._len==3 else ''}"
+        return f"{self.major}.{self.minor}{f'.{self.patch}' if self._len == 3 else ''}"
 
     def __repr__(self) -> str:
         return f"Version {self.full()}"
@@ -123,76 +121,38 @@ class Vers:
     def __str__(self) -> str:
         return f"Version {self.full()}"
 
+    def _precedence(self) -> tuple:
+        return (
+            self.major,
+            self.minor,
+            self.patch,
+            numeric_map[self.type or "f"],
+            self.build,
+        )
+
     def __eq__(self, other) -> bool:
-        if (
-            self.major == other.major
-            and self.minor == other.minor
-            and self.patch == other.patch
-        ):
-            if self.type is None:
-                return True
-            else:
-                if self.type == other.type and self.build == other.build:
-                    return True
-                else:
-                    return False
-        else:
-            return False
-        # return all(getattr(self, item) == getattr(other, item) for item in self.__dict__ if not item.startswith('_'))
-
-    def __ne__(self, other) -> bool:
-        return not self == other
-
-    def __gt__(self, other) -> bool:
-        if self.major != other.major:
-            return self.major > other.major
-        elif self.minor != other.minor:
-            return self.minor > other.minor
-        elif self.patch != other.patch:
-            return self.patch > other.patch
-        elif numeric_map[self.type] != numeric_map[other.type]:
-            return numeric_map[self.type] > numeric_map[other.type]
-        else:
-            return self.build > other.build
-
-    def __ge__(self, other) -> bool:
-        if self > other or self == other:
-            return True
-        else:
-            return False
+        if not isinstance(other, Vers):
+            return NotImplemented
+        return self._precedence() == other._precedence()
 
     def __lt__(self, other) -> bool:
-        if self.major != other.major:
-            return self.major < other.major
-        elif self.minor != other.minor:
-            return self.minor < other.minor
-        elif self.patch != other.patch:
-            return self.patch < other.patch
-        elif numeric_map[self.type] != numeric_map[other.type]:
-            return numeric_map[self.type] < numeric_map[other.type]
-        else:
-            return self.build < other.build
+        if not isinstance(other, Vers):
+            return NotImplemented
+        return self._precedence() < other._precedence()
 
-    def __le__(self, other) -> bool:
-        if self < other or self == other:
-            return True
+    def __add__(self, other: "Vers | int | float") -> "Vers":
+        result = copy(self)
+        if isinstance(other, int):
+            result.minor += other
+        elif isinstance(other, float):
+            major, minor = str(other).split(".")
+            result.major += int(major)
+            result.minor += int(minor)
+        elif isinstance(other, Vers):
+            result.major += other.major
+            result.minor += other.minor
+            if result._len == 3:
+                result.patch += other.patch
         else:
-            return False
-
-    def __add__(self, other:"Vers") -> "Vers":
-        
-        if isinstance(other,int):
-            self.minor += other
-            
-        if isinstance(other,float):
-            a=str(other).split(".")
-            self.major += int(a[0])
-            self.minor += int(a[1])
-            
-        if isinstance(other, Vers):
-            self.major += other.major
-            self.minor += other.minor
-            if self._len == 3:
-                self.patch += other.patch
-        return self
-# version = Vers(VERSION)
+            return NotImplemented
+        return result

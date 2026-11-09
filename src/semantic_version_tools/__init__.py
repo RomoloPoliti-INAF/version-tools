@@ -1,1 +1,1 @@
-from semantic_version_tools.version import Vers
+from semantic_version_tools.version import Vers as Vers
